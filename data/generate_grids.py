@@ -29,8 +29,8 @@ def obstacle_min_dist(grid, pos, not_included):
 def generate_grid(size, density, object_density_range, object_separation, goal_center, goal_extents):
     neighbors = np.array([[1,1], [1,0], [1,-1], [0,-1], [-1,-1], [-1,0], [-1,1], [0,1]])
 
-    grid = np.zeros(size)
-    while grid.sum() / float(np.prod(grid.shape)) < density:
+    grid = np.zeros(size) # free region are 0
+    while abs(grid).sum() / float(np.prod(grid.shape)) < density:
         object_density = np.random.uniform(*object_density_range)
         center = (np.random.randint(size[0]), np.random.randint(size[1]))
 
@@ -49,18 +49,18 @@ def generate_grid(size, density, object_density_range, object_separation, goal_c
             
         if len(added) / float(np.prod(grid.shape)) >= object_density_range[0]:
             added = np.array(list(added))
-            grid[added[:,0], added[:,1]] = 1
+            grid[added[:,0], added[:,1]] = -1 # obstacles marked with -1
         
     goal_x = np.arange(goal_center[0]-1 - (goal_extents[0]-1)//2, goal_center[0] + (goal_extents[0]-1)//2)
     goal_y = np.arange(goal_center[1]-1 - (goal_extents[1]-1)//2, goal_center[1] + (goal_extents[1]-1)//2)
     goal_grid = np.meshgrid(goal_x, goal_y)
-    grid[goal_grid[0].ravel(), goal_grid[1].ravel()] = -1
+    grid[goal_grid[0].ravel(), goal_grid[1].ravel()] = 1 # goal region marked with 1
     
     return grid
 
 def save_grid(grid, file_name):
     scipy.io.savemat(file_name+'.mat', mdict={'grid': grid})
-    plt.imshow(1-grid, cmap='Greys_r')
+    plt.imshow(grid, cmap='Greys_r')
     plt.show(block=False)
     plt.pause(0.01)
     plt.savefig(file_name+'.png')
