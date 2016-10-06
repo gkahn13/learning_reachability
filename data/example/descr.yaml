@@ -1,0 +1,8 @@
+size: [32, 32]
+density: 0.2
+object_density_range: [0.01, 0.01]
+object_separation: 0.1
+goal:
+  center: [30, 30]
+  extents: [5, 5]
+
