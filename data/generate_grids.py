@@ -23,8 +23,8 @@ def obstacle_min_dist(grid, pos, not_included):
     not_included = np.array(list(not_included))
     
     if len(not_included) > 0:
-        grid[not_included[:,0], not_included[:,1]] = 0.
-    obstacles = np.vstack(np.nonzero(grid)).T
+        grid[not_included[:,0], not_included[:,1]] = 1.
+    obstacles = np.vstack(np.nonzero(grid-1)).T
     dist = np.min([np.inf] + [np.linalg.norm(pos - o, 1) for o in obstacles])
     return dist
     
@@ -34,8 +34,8 @@ def generate_grid(size, density, object_density_range, object_separation, goal_c
     """
     neighbors = np.array([[1,1], [1,0], [1,-1], [0,-1], [-1,-1], [-1,0], [-1,1], [0,1]])
 
-    obst_grid = np.zeros(size) # free region are 0
-    while abs(obst_grid).sum() / float(np.prod(obst_grid.shape)) < density:
+    obst_grid = np.ones(size) # free region are 0
+    while abs((obst_grid-1)/2.).sum() / float(np.prod(obst_grid.shape)) < density:
         object_density = np.random.uniform(*object_density_range)
         center = (np.random.randint(size[0]), np.random.randint(size[1]))
 
@@ -59,16 +59,16 @@ def generate_grid(size, density, object_density_range, object_separation, goal_c
     goal_x = np.arange(goal_center[0]-1 - (goal_extents[0]-1)//2, goal_center[0] + (goal_extents[0]-1)//2)
     goal_y = np.arange(goal_center[1]-1 - (goal_extents[1]-1)//2, goal_center[1] + (goal_extents[1]-1)//2)
     goal_grid = np.meshgrid(goal_x, goal_y)
-    obst_grid[goal_grid[0].ravel(), goal_grid[1].ravel()] = 0 # goal region is clear
+    obst_grid[goal_grid[0].ravel(), goal_grid[1].ravel()] = 1 # goal region is clear
 
-    targ_grid = np.zeros(size)
+    targ_grid = np.ones(size)
     targ_grid[goal_grid[0].ravel(), goal_grid[1].ravel()] = -1 # goal region marked with -1
     
     return obst_grid, targ_grid
 
 def save_grid(obst_grid, targ_grid, file_name):
     scipy.io.savemat(file_name+'.mat', mdict={'obst_grid': obst_grid, 'targ_grid': targ_grid})
-    plt.imshow(obst_grid - targ_grid, cmap='Greys_r')
+    plt.imshow((obst_grid-1)/2. - (targ_grid-1)/2., cmap='Greys_r')
     plt.show(block=False)
     plt.pause(0.01)
     plt.savefig(file_name+'.png')
